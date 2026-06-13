@@ -16,25 +16,27 @@ app.get('/api/questions', async (req, res) => {
   try {
     const { subject, type = 'utme', year, count = 10 } = req.query;
 
-    const params = new URLSearchParams();
+    let url = `${ALOC_BASE}/m/${count}`;
+    const params = new URLSearchParams({ subject, type });
     if (year && year !== 'Any Year') params.append('year', year);
-    params.append('type', type);
+    url += `?${params.toString()}`;
 
-    const url = `${ALOC_BASE}/m/${count}?${params.toString()}`;
+    console.log('Fetching ALOC:', url);
 
     const response = await fetch(url, {
       method: 'GET',
       headers: {
         'AccessToken': process.env.ALOC_API_KEY,
-        'Content-Type': 'application/json',
+        'Accept': 'application/json',
       },
-      body: JSON.stringify({ subject }),
     });
 
     const data = await response.json();
+    console.log('ALOC response:', JSON.stringify(data).slice(0, 300));
+
     res.json(data);
   } catch (err) {
-    console.error(err);
+    console.error('ALOC error:', err.message);
     res.status(500).json({ error: 'Server error', details: err.message });
   }
 });
